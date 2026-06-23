@@ -1,0 +1,45 @@
+*{box-sizing:border-box}
+html,body,#root{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans KR', sans-serif;background:#F7F7F5;color:#2F3337}
+body{overflow:hidden}
+/* Full-screen elevator scene */
+.scene{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#F7F7F5 0%, #EFEFEF 100%)}
+.elevator-shell{position:relative;width:100%;height:100%;max-width:1200px;display:flex;align-items:center;justify-content:center}
+.elevator-frame{position:relative;width:70vw;height:80vh;background:linear-gradient(180deg,#EFEFEF,#F7F7F5);box-shadow:0 8px 24px rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center}
+.elevator-inner{position:relative;width:64vw;height:74vh;background:linear-gradient(180deg,#FBFBFB,#F7F7F5);overflow:hidden}
+/* Door viewport */
+.door-viewport{position:relative;width:100%;height:100%;background:transparent}
+.door{position:absolute;top:0;bottom:0;width:50%;background:linear-gradient(90deg,#BFC3C7,#A9ADB3);transition:transform 900ms cubic-bezier(.15,.9,.25,1);z-index:30}
+.door.left{left:0;transform:translateX(0)}
+.door.right{right:0;transform:translateX(0)}
+.door.closed.left{transform:translateX(0)}
+.door.closed.right{transform:translateX(0)}
+.door.open.left{transform:translateX(-100%)}
+.door.open.right{transform:translateX(100%)}
+
+/* subtle elevator move while travelling */
+.elevator-inner.moving{transform:translateY(-6px);transition:transform 900ms cubic-bezier(.15,.9,.25,1)}
+
+/* arrival indicator */
+.arrival-badge{position:absolute;top:20px;right:120px;background:rgba(255,255,255,0.06);backdrop-filter:blur(4px);padding:8px 10px;border-radius:6px;color:#FFFFFF;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,0.12);opacity:0;transform:translateY(-6px);transition:opacity 300ms ease, transform 300ms ease}
+.arrival-badge.show{opacity:1;transform:translateY(0)}
+/* Fixed interior elements */
+.ceiling-light{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:220px;height:12px;background:rgba(255,255,255,0.85);border-radius:6px;box-shadow:0 6px 20px rgba(255,255,255,0.6)}
+.back-wall{position:absolute;inset:90px 40px 60px 40px;background:linear-gradient(180deg,#F7F7F5,#EFEFEF);box-shadow:inset 0 -6px 24px rgba(0,0,0,0.04);border-left:1px solid rgba(0,0,0,0.02);border-right:1px solid rgba(0,0,0,0.02)}
+.floor-display{position:absolute;top:22px;left:22px;background:transparent;color:#2F3337;font-weight:700}
+.floor-display .label{font-size:12px;opacity:0.7}
+.floor-display .value{font-size:20px}
+.panel{position:absolute;right:22px;top:80px;width:84px;padding:12px;background:linear-gradient(180deg,#F2F2EE,#EDEDED);border-radius:6px;box-shadow:inset 0 -4px 8px rgba(0,0,0,0.03)}
+.button-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.floor-btn{width:36px;height:36px;border-radius:6px;background:#D9D9D4;display:flex;align-items:center;justify-content:center;color:#4A4F55;font-weight:700;cursor:pointer;user-select:none;border:none}
+.floor-btn:focus{outline:2px solid rgba(169,173,179,0.6);outline-offset:2px}
+.floor-btn.active{box-shadow:0 0 18px rgba(173,179,185,0.32);background:linear-gradient(180deg,#FFFFFF,#F2F2EE)}
+.open-btn{position:absolute;right:22px;bottom:22px;padding:10px 12px;border-radius:6px;background:#A9ADB3;color:white;font-weight:700;cursor:pointer;border:none}
+.open-btn:focus{outline:2px solid rgba(255,255,255,0.18)}
+/* Content panels inside door viewport */
+.content{position:absolute;inset:90px 120px 80px 120px;background:transparent;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:24px;opacity:0;transform:translateY(6px);transition:opacity 400ms ease, transform 400ms ease;z-index:10}
+.content.visible{opacity:1;transform:translateY(0)}
+.content h1{margin:0 0 8px 0;font-size:28px}
+.content p{margin:0;color:#4A4F55}
+/* Responsive adjustments */
+@media (max-width:900px){.elevator-frame{width:92vw;height:86vh}.content{inset:80px 24px 80px 24px}}
+@media (max-width:480px){.button-grid{grid-template-columns:repeat(3,1fr)}.panel{width:auto;padding:8px}}

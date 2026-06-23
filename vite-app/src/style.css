@@ -1,0 +1,4 @@
+/* Import base styles from prototype for quick parity */
+@import url('../style.css');
+
+/* You can override or extend here for production-specific styles */
