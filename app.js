@@ -1,167 +1,147 @@
-const {useState, useRef} = React;
+const floors = {
+  1: {
+    title: '1F - ABOUT',
+    text: 'Park So Hyun · Graphic / Brand / Content Designer',
+  },
+  2: {
+    title: '2F - EXPERIENCE',
+    text: 'Service & Personal brand experience highlights',
+  },
+  3: {
+    title: '3F - TOOLS',
+    text: 'Photoshop · Figma · Illustrator · InDesign · AI Tools',
+  },
+  4: {
+    title: '4F - PROJECTS',
+    text: 'KKOTPICK · noww · RE:ZUL - brief cards',
+  },
+  5: {
+    title: '5F - LETTER',
+    text: 'How I found design · Strengths · Aspirations',
+  },
+};
 
-function ElevatorApp(){
-  const [currentFloor, setCurrentFloor] = useState(null); // null means FLOOR
-  const [activeFloor, setActiveFloor] = useState(null);
-  const [displayFloor, setDisplayFloor] = useState('FLOOR');
-  const [direction, setDirection] = useState(null);
-  const [doorOpen, setDoorOpen] = useState(false);
-  const [moving, setMoving] = useState(false);
-  const [arrived, setArrived] = useState(false);
-  const movingRef = useRef(false);
+let currentFloor = null;
+let activeFloor = null;
+let moving = false;
+let doorOpen = false;
 
-  function openDoors(){
-    setDoorOpen(true);
-  }
-  function closeDoors(){
-    setDoorOpen(false);
-  }
+const root = document.getElementById('root');
 
-  function handleSelect(target){
-    if(movingRef.current) return;
-    if(currentFloor === target) return;
-    movingRef.current = true;
-    setMoving(true);
-    setArrived(false);
-    setActiveFloor(target);
+function floorLabel(floor) {
+  return floor === 0 || floor === null ? 'FLOOR' : `${floor}F`;
+}
 
-    // determine direction
-    const start = currentFloor === null ? 0 : currentFloor;
-    const dir = target > start ? 'UP' : 'DOWN';
-    setDirection(dir);
+function renderContent() {
+  if (!doorOpen) return '';
 
-    // close doors
-    closeDoors();
-
-    // after doors closed, simulate subtle move
-    setTimeout(()=>{
-      // simulate floor display stepping
-      const steps = [];
-      const s = start;
-      const t = target;
-      const step = t > s ? 1 : -1;
-      for(let f = s+step; ; f+=step){
-        steps.push(f);
-        if(f===t) break;
-      }
-      let idx = 0;
-      const interval = setInterval(()=>{
-        const f = steps[idx++];
-        setDisplayFloor(f===0? 'FLOOR' : f+"F");
-        if(idx>=steps.length){
-          clearInterval(interval);
-          // arrived: show small arrival indicator, then open doors
-          setArrived(true);
-          setTimeout(()=>{
-            setCurrentFloor(target);
-            setActiveFloor(null);
-            setDirection(null);
-            openDoors();
-            setArrived(false);
-            setMoving(false);
-            movingRef.current = false;
-          }, 500);
-        }
-      }, 420);
-    }, 750);
+  if (!currentFloor) {
+    return `
+      <div>
+        <h1>WELCOME</h1>
+        <p>Press a floor button to enter Park So Hyun's portfolio.</p>
+      </div>
+    `;
   }
 
-  // initial open action
-  function handleEnter(){
-    if(doorOpen){
-      closeDoors();
-      return;
-    }
-    openDoors();
-    setDisplayFloor('FLOOR');
-  }
+  const floor = floors[currentFloor];
+  return `
+    <div>
+      <h1>${floor.title}</h1>
+      <p>${floor.text}</p>
+    </div>
+  `;
+}
 
-  // keyboard: Esc to close doors
-  React.useEffect(()=>{
-    function onKey(e){
-      if(e.key === 'Escape') closeDoors();
-    }
-    window.addEventListener('keydown', onKey);
-    return ()=> window.removeEventListener('keydown', onKey);
-  },[])
+function render() {
+  root.innerHTML = `
+    <div class="scene">
+      <div class="elevator-shell">
+        <div class="elevator-frame">
+          <div class="elevator-inner ${moving ? 'moving' : ''}">
+            <div class="ceiling-light"></div>
+            <div class="back-wall"></div>
+            <div class="arrival-badge" aria-hidden="true">ARRIVED</div>
 
-  return (
-    <div className="scene">
-      <div className="elevator-shell">
-            <div className="elevator-frame">
-          <div className="elevator-inner">
-            <div className="ceiling-light"></div>
-            <div className="back-wall"></div>
-              <div className={"arrival-badge "+(arrived? 'show':'')} aria-hidden={!arrived}>ARRIVED</div>
-
-            <div className="floor-display">
-              <div className="label">DISPLAY</div>
-              <div className="value">{displayFloor}</div>
+            <div class="floor-display">
+              <div class="label">DISPLAY</div>
+              <div class="value">${floorLabel(currentFloor)}</div>
             </div>
 
-            <div className="panel" role="region" aria-label="Elevator panel">
-              <div style={{fontSize:12,opacity:0.8,marginBottom:8}}>PANEL</div>
-              <div className="button-grid">
-                {[1,2,3,4,5].map(n=>{
-                  const isActive = activeFloor===n;
-                  return (
-                    <button key={n} className={"floor-btn "+(isActive? 'active':'')} aria-pressed={isActive} onClick={()=>handleSelect(n)} disabled={moving}>{n}</button>
+            <div class="panel" role="region" aria-label="Elevator panel">
+              <div class="panel-title">PANEL</div>
+              <div class="button-grid">
+                ${[1, 2, 3, 4, 5]
+                  .map(
+                    (n) => `
+                      <button
+                        class="floor-btn ${activeFloor === n ? 'active' : ''}"
+                        aria-pressed="${activeFloor === n}"
+                        data-floor="${n}"
+                        ${moving ? 'disabled' : ''}
+                      >${n}</button>
+                    `,
                   )
-                })}
+                  .join('')}
               </div>
-              <button className="open-btn" onClick={handleEnter} aria-expanded={doorOpen}>{doorOpen? 'CLOSE' : 'OPEN'}</button>
+              <button class="open-btn" aria-expanded="${doorOpen}">
+                ${doorOpen ? 'CLOSE' : 'OPEN'}
+              </button>
             </div>
 
-            <div className={"door-viewport"}>
-              <div className={"door left "+(doorOpen? 'open':'closed') } aria-hidden={doorOpen}></div>
-              <div className={"door right "+(doorOpen? 'open':'closed') } aria-hidden={doorOpen}></div>
+            <div class="door-viewport">
+              <div class="door left ${doorOpen ? 'open' : 'closed'}" aria-hidden="${doorOpen}"></div>
+              <div class="door right ${doorOpen ? 'open' : 'closed'}" aria-hidden="${doorOpen}"></div>
 
-              <div className={"content "+(doorOpen && currentFloor? 'visible':'') } style={{zIndex:5}}>
-                {currentFloor===1 && (
-                  <div>
-                    <h1>1F — ABOUT</h1>
-                    <p>Park So Hyun · Graphic / Brand / Content Designer</p>
-                  </div>
-                )}
-                {currentFloor===2 && (
-                  <div>
-                    <h1>2F — EXPERIENCE</h1>
-                    <p>Service & Personal brand experience highlights</p>
-                  </div>
-                )}
-                {currentFloor===3 && (
-                  <div>
-                    <h1>3F — TOOLS</h1>
-                    <p>Photoshop · Figma · Illustrator · InDesign · AI Tools</p>
-                  </div>
-                )}
-                {currentFloor===4 && (
-                  <div>
-                    <h1>4F — PROJECTS</h1>
-                    <p>KKOTPICK · noww · RE:ZUL — brief cards</p>
-                  </div>
-                )}
-                {currentFloor===5 && (
-                  <div>
-                    <h1>5F — LETTER</h1>
-                    <p>How I found design · Strengths · Aspirations</p>
-                  </div>
-                )}
-                {!currentFloor && doorOpen && (
-                  <div>
-                    <h1>WELCOME</h1>
-                    <p>Press a floor button to enter Park So Hyun's portfolio.</p>
-                  </div>
-                )}
+              <div class="content ${doorOpen ? 'visible' : ''}">
+                ${renderContent()}
               </div>
-
             </div>
-
           </div>
         </div>
       </div>
     </div>
-  )
+  `;
+
+  document.querySelectorAll('.floor-btn').forEach((button) => {
+    button.addEventListener('click', () => selectFloor(Number(button.dataset.floor)));
+  });
+
+  document.querySelector('.open-btn').addEventListener('click', toggleDoors);
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<ElevatorApp/>);
+function toggleDoors() {
+  if (moving) return;
+  doorOpen = !doorOpen;
+  render();
+}
+
+function selectFloor(targetFloor) {
+  if (moving || currentFloor === targetFloor) return;
+
+  moving = true;
+  activeFloor = targetFloor;
+  doorOpen = false;
+  render();
+
+  setTimeout(() => {
+    currentFloor = targetFloor;
+    activeFloor = null;
+    doorOpen = true;
+    moving = false;
+    render();
+
+    const badge = document.querySelector('.arrival-badge');
+    badge.classList.add('show');
+    setTimeout(() => badge.classList.remove('show'), 700);
+  }, 900);
+}
+
+window.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && doorOpen) {
+    doorOpen = false;
+    render();
+  }
+});
+
+render();
